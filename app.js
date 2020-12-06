@@ -18,8 +18,8 @@ app.use(express.static("public"));
 
 const mongoose = require("mongoose");
 
-mongoose.connect("mongodb://localhost:27017/blogDB",{ useUnifiedTopology: true });
-
+mongoose.connect("mongodb://localhost:27017/userDB",{ useUnifiedTopology: true });
+// mongoose.connect("mongodb://localhost:27017/blogDB",{ useUnifiedTopology: true });
 const blogSchema = new mongoose.Schema({
   title: String,
   content: String
@@ -27,34 +27,32 @@ const blogSchema = new mongoose.Schema({
 
 const Blog = mongoose.model("Blog",blogSchema);
 
+const userSchema = new mongoose.Schema({
+  name: String,
+  email: String,
+  pass: String,
+  blog: blogSchema
+});
+
+const User = mongoose.model("User",userSchema);
 
 
-// Blog.find({},function(err,docs){
-//   docs.forEach(function(doc){
-//     console.log(doc.title);
-//   })
-// });
-
-
-
-
-var posts = [];
 var page_post = {
   title: "",
   content: ""
 }
 
 
-
 app.get("/",function(req,res){
-  // var post_list = [];
+  
   Blog.find({},function(err,blogs){
     res.render("home.ejs",{
       abc: homeStartingContent,
-      post: blogs
+      posts: blogs
     });
   });
 });
+
 
 
 app.get("/contact",function(req,res){
@@ -119,7 +117,39 @@ app.post("/compose",function(req,res){
 });
 
 
+app.get("/signup",function(req,res){
+  res.render("signup");
+});
 
+app.get("/login",function(req,res){
+  res.render("login");
+});
+
+
+app.post("/signup",function(req,res){
+  if(req.body.user_password === req.body.confirm_password){
+    const a = new User({
+      name: req.body.user_name,
+      email: req.body.user_email,
+      pass: req.body.user_password
+    });
+    a.save();
+  }
+  res.redirect("/login");
+});
+
+app.post("/login",function(req,res){
+  User.find({},function(err,docs){
+    docs.forEach(function(doc){
+      if(doc.email === req.body.login_email && doc.pass === req.body.login_password ){
+        console.log("Login Allowed");
+        res.redirect("/");
+      }
+    
+    })
+  })
+  
+});
 
 
 
